@@ -9,7 +9,7 @@ module "rg" {
 }
 
 module "vnet" {
-  source = "../../"
+  source = "cyber-scot/network/azurerm"
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -63,7 +63,7 @@ No requirements.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_rg"></a> [rg](#module\_rg) | cyber-scot/rg/azurerm | n/a |
-| <a name="module_vnet"></a> [vnet](#module\_vnet) | ../../ | n/a |
+| <a name="module_vnet"></a> [vnet](#module\_vnet) | cyber-scot/network/azurerm | n/a |
 
 ## Resources
 
