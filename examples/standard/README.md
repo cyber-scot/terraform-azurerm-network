@@ -8,7 +8,7 @@ module "rg" {
   tags     = local.tags
 }
 
-module "vnet" {
+module "network" {
   source = "cyber-scot/network/azurerm"
 
   rg_name  = module.rg.rg_name
@@ -20,7 +20,7 @@ module "vnet" {
   vnet_address_space = ["10.0.0.0/16"]
 
   subnets = {
-    "sn1-${module.vnet.vnet_name}" = {
+    "sn1-${module.network.vnet_name}" = {
       prefix            = "10.0.0.0/24",
       service_endpoints = ["Microsoft.Storage"]
       delegation = [
@@ -29,10 +29,10 @@ module "vnet" {
         },
       ]
     }
-    "sn2-${module.vnet.vnet_name}" = {
+    "sn2-${module.network.vnet_name}" = {
       prefix = "10.0.1.0/24",
     }
-    "sn3-${module.vnet.vnet_name}" = {
+    "sn3-${module.network.vnet_name}" = {
       prefix = "10.0.2.0/24",
       delegation = [
         {
@@ -61,8 +61,8 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_network"></a> [network](#module\_network) | cyber-scot/network/azurerm | n/a |
 | <a name="module_rg"></a> [rg](#module\_rg) | cyber-scot/rg/azurerm | n/a |
-| <a name="module_vnet"></a> [vnet](#module\_vnet) | cyber-scot/network/azurerm | n/a |
 
 ## Resources
 
