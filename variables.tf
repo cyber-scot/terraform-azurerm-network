@@ -50,7 +50,7 @@ variable "subnet_delegations_actions" {
     "Microsoft.AzureCosmosDB/clusters"                = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     "Microsoft.Network/dnsResolvers"                  = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
   }
-  description = "Unused, but composes a list of delegation actions when delegations of subnets is used"
+  description = "List of delegation actions when delegations of subnets is used, will be done for query"
 }
 
 variable "subnet_enforce_private_link_endpoint_network_policies" {
