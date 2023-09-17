@@ -32,7 +32,6 @@ module "vnet" {
     "sn2-${module.vnet.vnet_name}" = {
       prefix = "10.0.1.0/24",
     }
-
     "sn3-${module.vnet.vnet_name}" = {
       prefix = "10.0.2.0/24",
       delegation = [
