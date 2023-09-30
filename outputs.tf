@@ -3,14 +3,6 @@ output "route_table_ids" {
   value       = { for name, rt in azurerm_route_table.this : name => rt.id }
 }
 
-output "subnets_ids" {
-  value = {
-    for key, subnet in azurerm_subnet.subnet :
-    key => subnet.id
-  }
-  description = "The ids of the subnets created"
-}
-
 output "subnet_ids_associated_with_route_tables" {
   value = {
     for rt_id, associations in group_by(azurerm_subnet_route_table_association.this, "route_table_id") :
@@ -19,6 +11,13 @@ output "subnet_ids_associated_with_route_tables" {
   description = "The IDs of the subnets associated with each route table"
 }
 
+output "subnets_ids" {
+  value = {
+    for key, subnet in azurerm_subnet.subnet :
+    key => subnet.id
+  }
+  description = "The ids of the subnets created"
+}
 
 output "subnets_names" {
   value = {

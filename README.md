@@ -46,9 +46,9 @@ resource "azurerm_subnet_network_security_group_association" "vnet" {
 resource "azurerm_route_table" "this" {
   for_each = var.route_tables
 
-  name                = each.key
-  location            = var.location
-  resource_group_name = var.rg_name
+  name                          = each.key
+  location                      = var.location
+  resource_group_name           = var.rg_name
   disable_bgp_route_propagation = false
 
   dynamic "route" {
@@ -63,10 +63,10 @@ resource "azurerm_route_table" "this" {
 }
 
 resource "azurerm_subnet_route_table_association" "this" {
-  depends_on           = [azurerm_subnet.subnet]
-  for_each             = var.subnet_route_table_associations
-  subnet_id            = local.subnets[each.key]
-  route_table_id       = azurerm_route_table.this[each.value].id
+  depends_on     = [azurerm_subnet.subnet]
+  for_each       = var.subnet_route_table_associations
+  subnet_id      = local.subnets[each.key]
+  route_table_id = azurerm_route_table.this[each.value].id
 }
 ```
 ## Requirements
@@ -119,6 +119,7 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_route_table_ids"></a> [route\_table\_ids](#output\_route\_table\_ids) | Map of Route Table names to their IDs. |
+| <a name="output_subnet_ids_associated_with_route_tables"></a> [subnet\_ids\_associated\_with\_route\_tables](#output\_subnet\_ids\_associated\_with\_route\_tables) | The IDs of the subnets associated with each route table |
 | <a name="output_subnets_ids"></a> [subnets\_ids](#output\_subnets\_ids) | The ids of the subnets created |
 | <a name="output_subnets_names"></a> [subnets\_names](#output\_subnets\_names) | The name of the subnets created |
 | <a name="output_vnet_address_space"></a> [vnet\_address\_space](#output\_vnet\_address\_space) | The address space of the newly created vNet |
