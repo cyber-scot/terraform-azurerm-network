@@ -43,3 +43,8 @@ output "vnet_rg_name" {
   description = "The resource group name which the VNet is in"
   value       = azurerm_virtual_network.vnet.resource_group_name
 }
+
+output "route_table_ids" {
+  description = "Map of Route Table names to their IDs."
+  value       = { for name, rt in azurerm_route_table.this : name => rt.id }
+}

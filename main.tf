@@ -40,3 +40,29 @@ resource "azurerm_subnet_network_security_group_association" "vnet" {
   subnet_id                 = local.subnets[each.key]
   network_security_group_id = each.value
 }
+
+resource "azurerm_route_table" "this" {
+  for_each = var.route_tables
+
+  name                = each.key
+  location            = var.location
+  resource_group_name = var.rg_name
+  disable_bgp_route_propagation = false
+
+  dynamic "route" {
+    for_each = each.value.routes
+    content {
+      name                   = route.key
+      address_prefix         = route.value.address_prefix
+      next_hop_type          = route.value.next_hop_type
+      next_hop_in_ip_address = lookup(route.value, "next_hop_in_ip_address", null)
+    }
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "this" {
+  depends_on           = [azurerm_subnet.subnet]
+  for_each             = var.subnet_route_table_associations
+  subnet_id            = local.subnets[each.key]
+  route_table_id       = azurerm_route_table.this[each.value].id
+}
