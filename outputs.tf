@@ -4,7 +4,7 @@ output "route_table_ids" {
 }
 
 output "subnet_ids_associated_with_route_tables" {
-  value = local.grouped_by_route_table
+  value       = local.grouped_by_route_table
   description = "The IDs of the subnets associated with each route table"
 }
 

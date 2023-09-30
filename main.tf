@@ -44,7 +44,7 @@ resource "azurerm_subnet_network_security_group_association" "vnet" {
 locals {
   route_table_associations = { for assoc in azurerm_subnet_route_table_association.this : assoc.id => { subnet_id = assoc.subnet_id, route_table_id = assoc.route_table_id } }
 
-  grouped_by_route_table = {for rt_id in distinct([for assoc in local.route_table_associations : local.route_table_associations[assoc].route_table_id]) :
+  grouped_by_route_table = { for rt_id in distinct([for assoc in local.route_table_associations : local.route_table_associations[assoc].route_table_id]) :
     rt_id => [for assoc in local.route_table_associations : local.route_table_associations[assoc].subnet_id if local.route_table_associations[assoc].route_table_id == rt_id]
   }
 }
