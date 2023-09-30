@@ -12,11 +12,11 @@ resource "azurerm_virtual_network" "vnet" {
 resource "azurerm_subnet" "subnet" {
   for_each = var.subnets
 
-  name                = each.key
-  resource_group_name = var.rg_name
-  virtual_network_name= azurerm_virtual_network.vnet.name
-  address_prefixes    = toset([each.value.prefix])
-  service_endpoints   = toset(each.value.service_endpoints)
+  name                 = each.key
+  resource_group_name  = var.rg_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = toset([each.value.prefix])
+  service_endpoints    = toset(each.value.service_endpoints)
 
   dynamic "delegation" {
     for_each = each.value.delegation != null ? each.value.delegation : []
@@ -42,6 +42,32 @@ resource "azurerm_subnet_network_security_group_association" "vnet" {
   subnet_id                 = local.subnets[each.key]
   network_security_group_id = each.value
 }
+
+resource "azurerm_route_table" "this" {
+  for_each = var.route_tables
+
+  name                = each.key
+  location            = var.location
+  resource_group_name = var.rg_name
+  disable_bgp_route_propagation = false
+
+  dynamic "route" {
+    for_each = each.value.routes
+    content {
+      name                   = route.key
+      address_prefix         = route.value.address_prefix
+      next_hop_type          = route.value.next_hop_type
+      next_hop_in_ip_address = lookup(route.value, "next_hop_in_ip_address", null)
+    }
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "this" {
+  depends_on           = [azurerm_subnet.subnet]
+  for_each             = var.subnet_route_table_associations
+  subnet_id            = local.subnets[each.key]
+  route_table_id       = azurerm_route_table.this[each.value].id
+}
 ```
 ## Requirements
 
@@ -61,8 +87,10 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [azurerm_route_table.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) | resource |
 | [azurerm_subnet.subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
 | [azurerm_subnet_network_security_group_association.vnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_route_table_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_virtual_network.vnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) | resource |
 
 ## Inputs
@@ -73,10 +101,12 @@ No modules.
 | <a name="input_location"></a> [location](#input\_location) | The location for this resource to be put in | `string` | n/a | yes |
 | <a name="input_nsg_ids"></a> [nsg\_ids](#input\_nsg\_ids) | A map of subnet name to Network Security Group IDs | `map(string)` | `{}` | no |
 | <a name="input_rg_name"></a> [rg\_name](#input\_rg\_name) | The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists | `string` | n/a | yes |
+| <a name="input_route_tables"></a> [route\_tables](#input\_route\_tables) | Map of Route Tables to be created, where the key is the name of the Route Table. | <pre>map(object({<br>    routes = map(object({<br>      address_prefix         = string<br>      next_hop_type          = string<br>      next_hop_in_ip_address = optional(string)<br>    }))<br>  }))</pre> | `{}` | no |
 | <a name="input_route_tables_ids"></a> [route\_tables\_ids](#input\_route\_tables\_ids) | A map of subnet name to Route table ids | `map(string)` | `{}` | no |
-| <a name="input_subnet_delegations_actions"></a> [subnet\_delegations\_actions](#input\_subnet\_delegations\_actions) | Unused, but composes a list of delegation actions when delegations of subnets is used | `map(list(string))` | <pre>{<br>  "Microsoft.AzureCosmosDB/clusters": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.BareMetal/AzureVMware": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.BareMetal/CrayServers": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Batch/batchAccounts": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.ContainerInstance/containerGroups": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.DBforPostgreSQL/serversv2": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Databricks/workspaces": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action",<br>    "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",<br>    "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"<br>  ],<br>  "Microsoft.HardwareSecurityModules/dedicatedHSMs": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Logic/integrationServiceEnvironments": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Netapp/volumes": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Network/dnsResolvers": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.ServiceFabricMesh/networks": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Sql/managedInstances": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action",<br>    "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",<br>    "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"<br>  ],<br>  "Microsoft.StreamAnalytics/streamingJobs": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Web/hostingEnvironments": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Web/serverFarms": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ]<br>}</pre> | no |
+| <a name="input_subnet_delegations_actions"></a> [subnet\_delegations\_actions](#input\_subnet\_delegations\_actions) | List of delegation actions when delegations of subnets is used, will be done for query | `map(list(string))` | <pre>{<br>  "Microsoft.AzureCosmosDB/clusters": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.BareMetal/AzureVMware": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.BareMetal/CrayServers": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Batch/batchAccounts": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.ContainerInstance/containerGroups": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.DBforPostgreSQL/serversv2": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Databricks/workspaces": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action",<br>    "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",<br>    "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"<br>  ],<br>  "Microsoft.HardwareSecurityModules/dedicatedHSMs": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Logic/integrationServiceEnvironments": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Netapp/volumes": [<br>    "Microsoft.Network/networkinterfaces/*",<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Network/dnsResolvers": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.ServiceFabricMesh/networks": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Sql/managedInstances": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action",<br>    "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",<br>    "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"<br>  ],<br>  "Microsoft.StreamAnalytics/streamingJobs": [<br>    "Microsoft.Network/virtualNetworks/subnets/join/action"<br>  ],<br>  "Microsoft.Web/hostingEnvironments": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ],<br>  "Microsoft.Web/serverFarms": [<br>    "Microsoft.Network/virtualNetworks/subnets/action"<br>  ]<br>}</pre> | no |
 | <a name="input_subnet_enforce_private_link_endpoint_network_policies"></a> [subnet\_enforce\_private\_link\_endpoint\_network\_policies](#input\_subnet\_enforce\_private\_link\_endpoint\_network\_policies) | A map of subnet name to enable/disable private link endpoint network policies on the subnet. | `map(bool)` | `{}` | no |
 | <a name="input_subnet_enforce_private_link_service_network_policies"></a> [subnet\_enforce\_private\_link\_service\_network\_policies](#input\_subnet\_enforce\_private\_link\_service\_network\_policies) | A map of subnet name to enable/disable private link service network policies on the subnet. | `map(bool)` | `{}` | no |
+| <a name="input_subnet_route_table_associations"></a> [subnet\_route\_table\_associations](#input\_subnet\_route\_table\_associations) | Map where the key is the subnet name and the value is the name of the route table to associate with. | `map(string)` | `{}` | no |
 | <a name="input_subnet_service_endpoints"></a> [subnet\_service\_endpoints](#input\_subnet\_service\_endpoints) | A map of subnet name to service endpoints to add to the subnet. | `map(any)` | `{}` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnets with their properties | <pre>map(object({<br>    prefix = string<br>    delegation = optional(list(object({<br>      type   = optional(string)<br>      action = optional(list(string)) # Optional user-defined action<br>    })))<br>    service_endpoints = optional(list(string))<br>  }))</pre> | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | The tags to associate with your network and subnets. | `map(string)` | n/a | yes |
@@ -88,6 +118,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_route_table_ids"></a> [route\_table\_ids](#output\_route\_table\_ids) | Map of Route Table names to their IDs. |
 | <a name="output_subnets_ids"></a> [subnets\_ids](#output\_subnets\_ids) | The ids of the subnets created |
 | <a name="output_subnets_names"></a> [subnets\_names](#output\_subnets\_names) | The name of the subnets created |
 | <a name="output_vnet_address_space"></a> [vnet\_address\_space](#output\_vnet\_address\_space) | The address space of the newly created vNet |

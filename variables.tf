@@ -24,6 +24,18 @@ variable "rg_name" {
   }
 }
 
+variable "route_tables" {
+  description = "Map of Route Tables to be created, where the key is the name of the Route Table."
+  type = map(object({
+    routes = map(object({
+      address_prefix         = string
+      next_hop_type          = string
+      next_hop_in_ip_address = optional(string)
+    }))
+  }))
+  default = {}
+}
+
 variable "route_tables_ids" {
   description = "A map of subnet name to Route table ids"
   type        = map(string)
@@ -62,6 +74,12 @@ variable "subnet_enforce_private_link_endpoint_network_policies" {
 variable "subnet_enforce_private_link_service_network_policies" {
   description = "A map of subnet name to enable/disable private link service network policies on the subnet."
   type        = map(bool)
+  default     = {}
+}
+
+variable "subnet_route_table_associations" {
+  description = "Map where the key is the subnet name and the value is the name of the route table to associate with."
+  type        = map(string)
   default     = {}
 }
 
@@ -115,22 +133,3 @@ variable "vnet_name" {
   description = "Name of the vnet to create"
   type        = string
 }
-
-variable "route_tables" {
-  description = "Map of Route Tables to be created, where the key is the name of the Route Table."
-  type = map(object({
-    routes = map(object({
-      address_prefix         = string
-      next_hop_type          = string
-      next_hop_in_ip_address = optional(string)
-    }))
-  }))
-  default = {}
-}
-
-variable "subnet_route_table_associations" {
-  description = "Map where the key is the subnet name and the value is the name of the route table to associate with."
-  type        = map(string)
-  default     = {}
-}
-
