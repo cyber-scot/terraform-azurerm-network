@@ -9,7 +9,7 @@ module "rg" {
 }
 
 module "network" {
-  source = "cyber-scot/rg/azurerm"
+  source = "cyber-scot/network/azurerm"
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -56,7 +56,7 @@ module "network" {
   }
 
   subnet_route_table_associations = {
-      "sn1-${module.network.vnet_name}"  = "rt1"
+    "sn1-${module.network.vnet_name}" = "rt1"
   }
 }
 
@@ -77,7 +77,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_network"></a> [network](#module\_network) | cyber-scot/rg/azurerm | n/a |
+| <a name="module_network"></a> [network](#module\_network) | cyber-scot/network/azurerm | n/a |
 | <a name="module_rg"></a> [rg](#module\_rg) | cyber-scot/rg/azurerm | n/a |
 
 ## Resources
