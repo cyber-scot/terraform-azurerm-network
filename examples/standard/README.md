@@ -69,7 +69,7 @@ No requirements.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.73.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.75.0 |
 | <a name="provider_external"></a> [external](#provider\_external) | 2.3.1 |
 | <a name="provider_http"></a> [http](#provider\_http) | 3.4.0 |
 
