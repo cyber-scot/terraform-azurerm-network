@@ -103,11 +103,6 @@ variable "subnets" {
     service_endpoints = optional(list(string))
   }))
   default = {}
-
-  validation {
-    condition     = can([for subnet in var.subnets : cidrsubnet(subnet.prefix, 0, 0)])
-    error_message = "Each subnet prefix must be a valid CIDR notation."
-  }
 }
 
 variable "tags" {
