@@ -21,7 +21,7 @@ module "network" {
 
   subnets = {
     "sn1-${module.network.vnet_name}" = {
-      address_prefixes = ["10.0.0.0/24"]
+      address_prefixes  = ["10.0.0.0/24"]
       service_endpoints = ["Microsoft.Storage"]
       delegation = [
         {
@@ -41,22 +41,6 @@ module "network" {
         },
       ]
     }
-  }
-
-  route_tables = {
-    rt1 = {
-      routes = {
-        route1 = {
-          address_prefix         = "0.0.0.0/0"
-          next_hop_type          = "VirtualAppliance"
-          next_hop_in_ip_address = "10.0.1.4"
-        }
-      }
-    }
-  }
-
-  subnet_route_table_associations = {
-    "sn1-${module.network.vnet_name}" = "rt1"
   }
 }
 
