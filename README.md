@@ -15,8 +15,11 @@ resource "azurerm_subnet" "subnet" {
   name                 = each.key
   resource_group_name  = var.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = toset([each.value.prefix])
+  address_prefixes     = toset(each.value.address_prefixes)
   service_endpoints    = toset(each.value.service_endpoints)
+  service_endpoint_policy_ids = toset(each.value.service_endpoint_policy_ids)
+  private_endpoint_network_policies_enabled = each.value.private_endpoint_network_policies_enabled
+  private_link_service_network_policies_enabled = each.value.private_link_service_network_policies_enabled
 
   dynamic "delegation" {
     for_each = each.value.delegation != null ? each.value.delegation : []
@@ -46,7 +49,7 @@ resource "azurerm_subnet_network_security_group_association" "vnet" {
 locals {
   route_table_associations = { for assoc in azurerm_subnet_route_table_association.this : assoc.id => { subnet_id = assoc.subnet_id, route_table_id = assoc.route_table_id } }
 
-  grouped_by_route_table = {for rt_id in distinct([for assoc in local.route_table_associations : local.route_table_associations[assoc].route_table_id]) :
+  grouped_by_route_table = { for rt_id in distinct([for assoc in local.route_table_associations : local.route_table_associations[assoc].route_table_id]) :
     rt_id => [for assoc in local.route_table_associations : local.route_table_associations[assoc].subnet_id if local.route_table_associations[assoc].route_table_id == rt_id]
   }
 }
@@ -117,7 +120,7 @@ No modules.
 | <a name="input_subnet_enforce_private_link_service_network_policies"></a> [subnet\_enforce\_private\_link\_service\_network\_policies](#input\_subnet\_enforce\_private\_link\_service\_network\_policies) | A map of subnet name to enable/disable private link service network policies on the subnet. | `map(bool)` | `{}` | no |
 | <a name="input_subnet_route_table_associations"></a> [subnet\_route\_table\_associations](#input\_subnet\_route\_table\_associations) | Map where the key is the subnet name and the value is the name of the route table to associate with. | `map(string)` | `{}` | no |
 | <a name="input_subnet_service_endpoints"></a> [subnet\_service\_endpoints](#input\_subnet\_service\_endpoints) | A map of subnet name to service endpoints to add to the subnet. | `map(any)` | `{}` | no |
-| <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnets with their properties | <pre>map(object({<br>    prefix = string<br>    delegation = optional(list(object({<br>      type   = optional(string)<br>      action = optional(list(string)) # Optional user-defined action<br>    })))<br>    service_endpoints = optional(list(string))<br>  }))</pre> | `{}` | no |
+| <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnets with their properties | <pre>map(object({<br>    address_prefixes                              = set(string)<br>    private_endpoint_network_policies_enabled     = optional(bool, true)<br>    private_link_service_network_policies_enabled = optional(bool, false)<br>    service_endpoint_policy_ids                   = optional(set(string))<br>    delegation = optional(list(object({<br>      type   = optional(string)<br>      action = optional(list(string)) # Optional user-defined action<br>    })))<br>    service_endpoints = optional(list(string))<br>  }))</pre> | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | The tags to associate with your network and subnets. | `map(string)` | n/a | yes |
 | <a name="input_vnet_address_space"></a> [vnet\_address\_space](#input\_vnet\_address\_space) | The address space that is used by the virtual network. | `list(string)` | n/a | yes |
 | <a name="input_vnet_location"></a> [vnet\_location](#input\_vnet\_location) | The location of the vnet to create. Defaults to the location of the resource group. | `string` | n/a | yes |

@@ -92,7 +92,10 @@ variable "subnet_service_endpoints" {
 variable "subnets" {
   description = "Map of subnets with their properties"
   type = map(object({
-    prefix = string
+    address_prefixes                              = set(string)
+    private_endpoint_network_policies_enabled     = optional(bool, true)
+    private_link_service_network_policies_enabled = optional(bool, false)
+    service_endpoint_policy_ids                   = optional(set(string))
     delegation = optional(list(object({
       type   = optional(string)
       action = optional(list(string)) # Optional user-defined action

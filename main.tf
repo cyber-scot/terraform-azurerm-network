@@ -10,11 +10,14 @@ resource "azurerm_virtual_network" "vnet" {
 resource "azurerm_subnet" "subnet" {
   for_each = var.subnets
 
-  name                 = each.key
-  resource_group_name  = var.rg_name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = toset([each.value.prefix])
-  service_endpoints    = toset(each.value.service_endpoints)
+  name                                          = each.key
+  resource_group_name                           = var.rg_name
+  virtual_network_name                          = azurerm_virtual_network.vnet.name
+  address_prefixes                              = toset(each.value.address_prefixes)
+  service_endpoints                             = toset(each.value.service_endpoints)
+  service_endpoint_policy_ids                   = toset(each.value.service_endpoint_policy_ids)
+  private_endpoint_network_policies_enabled     = each.value.private_endpoint_network_policies_enabled
+  private_link_service_network_policies_enabled = each.value.private_link_service_network_policies_enabled
 
   dynamic "delegation" {
     for_each = each.value.delegation != null ? each.value.delegation : []
